@@ -99,15 +99,10 @@ export default defineConfig({
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   // outputDir: 'test-results/',
 
-  /* Run your local dev server before starting the tests */
+  /* Test the production output, including prerendered deep links. */
   webServer: {
-    /**
-     * Use the dev server by default for faster feedback loop.
-     * Use the preview server on CI for more realistic testing.
-     * Playwright will re-use the local server if there is already a dev-server running.
-     */
-    command: process.env.CI ? 'npm run preview' : 'npm run dev',
+    command: process.env.CI ? 'npm run preview' : 'npm run build && npm run preview',
     port: PORT,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 })
