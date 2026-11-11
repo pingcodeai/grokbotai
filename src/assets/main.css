@@ -582,8 +582,9 @@
 }
 
 .article-hero-placeholder {
+  max-width: 1050px;
   min-height: 250px;
-  margin: 10px 0 0;
+  margin: 10px auto 0;
   border: var(--line);
   box-shadow: 7px 7px 0 var(--ink);
 }
@@ -699,7 +700,7 @@
 }
 
 .article-header {
-  max-width: 950px;
+  max-width: 1050px;
   margin: 7px auto 34px;
 }
 
