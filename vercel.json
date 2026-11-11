@@ -4,7 +4,30 @@
   "outputDirectory": "dist",
   "framework": null,
   "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/category/prompt-lab/",
+      "destination": "/category/getting-started/",
+      "permanent": true
+    },
+    {
+      "source": "/category/grok-notes/",
+      "destination": "/category/product-updates/",
+      "permanent": true
+    }
+  ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'"
+        }
+      ]
+    },
     {
       "source": "/assets/(.*)",
       "headers": [
