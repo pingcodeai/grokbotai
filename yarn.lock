@@ -2693,7 +2693,7 @@ __metadata:
     npm-run-all2: "npm:^9.0.3"
     oxfmt: "npm:^0.67.0"
     oxlint: "npm:~1.82.0"
-    typescript: "npm:~6.0.0"
+    typescript: "npm:~7.0.2"
     vite: "npm:^8.2.2"
     vite-plugin-vue-devtools: "npm:^8.2.1"
     vite-ssg: "npm:^28.3.0"
