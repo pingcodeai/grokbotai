@@ -1,0 +1,137 @@
+# ============================================
+# 凭据与环境变量 —— 泄露后需去服务商吊销，务必最先确认
+# ============================================
+.env
+.env.*
+!.env.example
+!.env.*.example
+cf.txt
+prod_cf.txt
+
+# 密钥 / 证书
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+.npmrc
+.netrc
+*.gpg
+secrets.*
+credentials.*
+service-account*.json
+gha-creds-*.json
+
+# 云服务商本地状态
+.vercel
+.netlify
+.wrangler
+.firebase
+.terraform/
+*.tfstate
+*.tfstate.*
+.aws/
+.gcloud/
+
+# ============================================
+# 依赖
+# ============================================
+node_modules/
+jspm_packages/
+
+# Yarn 4（node-modules linker：缓存与状态不入库，releases/patches 需要）
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+.yarn-integrity
+
+# ============================================
+# 构建产物
+# ============================================
+dist/
+dist-ssr/
+build/
+.output/
+.vite/
+*.local
+
+# ============================================
+# 本地素材与生成产物（不入库）
+# ============================================
+notes/
+output/
+
+# ============================================
+# 测试与缓存
+# ============================================
+coverage/
+*.lcov
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+__screenshots__/
+/cypress/videos/
+/cypress/screenshots/
+.nyc_output/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.cache/
+.temp/
+.tmp/
+
+# Vite 临时配置产物
+*.timestamp-*-*.mjs
+
+# ============================================
+# 日志
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.json
+
+# ============================================
+# 编辑器与工具（共享配置保留）
+# ============================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# Claude Code 本地设置（settings.json 可共享，local 不入库）
+.claude/settings.local.json
+
+# ============================================
+# 操作系统
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
