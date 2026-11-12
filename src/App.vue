@@ -28,14 +28,25 @@ import { categories } from './content/articles'
             exact-active-class="nav-current"
           >{{ category.label }}</RouterLink>
         </nav>
-        <a
-          class="button nav-cta"
-          href="https://pingcode.ai/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          免费领取千万 Token <span>↗</span>
-        </a>
+        <div class="nav-actions">
+          <a
+            class="button nav-cta"
+            href="https://pingcode.ai/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            免费领取千万 Token <span>↗</span>
+          </a>
+          <a
+            class="button nav-github"
+            href="https://github.com/pingcodeai/grokbotai"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="在 GitHub 查看 Grok Bot AI 项目"
+          >
+            GitHub <span>↗</span>
+          </a>
+        </div>
       </div>
     </header>
     <RouterView v-slot="{ Component, route }">

@@ -8,7 +8,7 @@ import { defineConfig, devices } from '@playwright/test'
 // require('dotenv').config();
 
 /** 与 vite.config.ts 保持一致的固定端口。 */
-const PORT = 8999
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 8999)
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -101,7 +101,9 @@ export default defineConfig({
 
   /* Test the production output, including prerendered deep links. */
   webServer: {
-    command: process.env.CI ? 'npm run preview' : 'npm run build && npm run preview',
+    command: process.env.CI
+      ? `npm run preview -- --port ${PORT}`
+      : `npm run build && npm run preview -- --port ${PORT}`,
     port: PORT,
     reuseExistingServer: false,
   },

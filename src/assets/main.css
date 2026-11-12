@@ -107,6 +107,31 @@
   border-bottom-color: var(--ink);
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.nav-actions .button {
+  min-height: 48px;
+  padding: 10px 15px;
+  gap: 12px;
+  font-size: 12px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.nav-actions .nav-github {
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: 4px 4px 0 var(--blue) !important;
+}
+
+.nav-actions .nav-github:hover {
+  box-shadow: 6px 6px 0 var(--blue) !important;
+}
+
 .button {
   min-height: 54px;
   padding: 12px 20px;
@@ -816,6 +841,15 @@
   line-height: 1.7;
 }
 
+.table-of-contents .toc-level-2 {
+  font-weight: 800;
+}
+
+.table-of-contents .toc-level-3 {
+  padding-left: 14px;
+  font-size: 10.5px;
+}
+
 .table-of-contents a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -846,6 +880,28 @@
   line-height: 1.45;
   font-weight: 900;
   letter-spacing: -0.5px;
+}
+
+.article-markdown h2,
+.article-markdown h3,
+.article-markdown h4 {
+  scroll-margin-top: 25px;
+}
+
+.article-markdown h3 {
+  margin: 31px 0 14px;
+  font-size: 21px;
+  line-height: 1.5;
+  font-weight: 900;
+}
+
+.article-markdown h4 {
+  margin: 25px 0 11px;
+  padding-left: 13px;
+  border-left: 5px solid var(--pink);
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 900;
 }
 
 .article-content h2 span {
@@ -988,6 +1044,15 @@
     gap: 18px;
   }
 
+  .nav-actions {
+    gap: 8px;
+  }
+
+  .nav-actions .button {
+    padding-inline: 11px;
+    font-size: 11px;
+  }
+
   .home-hero {
     gap: 30px;
   }
@@ -1057,7 +1122,7 @@
   }
 
   .main-nav,
-  .nav-cta {
+  .nav-actions {
     display: none;
   }
 
