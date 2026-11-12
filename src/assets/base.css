@@ -29,13 +29,16 @@ html {
   min-width: 320px;
   scroll-behavior: smooth;
   scroll-padding-top: 28px;
+  overflow-x: clip;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--paper);
+  overflow-x: clip;
 }
 
 body,
