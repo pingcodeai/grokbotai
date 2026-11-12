@@ -81,7 +81,12 @@ watchEffect(() => {
       <div class="reading-layout">
         <aside class="table-of-contents" aria-label="文章目录">
           <strong>这篇文章里 / INDEX</strong>
-          <a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`">
+          <a
+            v-for="heading in headings"
+            :key="heading.id"
+            :href="`#${heading.id}`"
+            :class="`toc-level-${heading.level}`"
+          >
             {{ heading.number }} {{ heading.text }}
           </a>
           <p>START SMALL.<br />先把一件事做好。</p>
