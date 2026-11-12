@@ -20,3 +20,38 @@ test('filters articles when a category is selected', async ({ page }) => {
   )
   await expect(page.locator('.article-card')).toHaveCount(2)
 })
+
+test.describe('mobile layout', () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  test('keeps navigation and article cards inside the viewport', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByRole('navigation', { name: '主导航' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link').first()).toHaveCSS(
+      'min-height',
+      '44px',
+    )
+
+    const layout = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      pageWidth: document.documentElement.scrollWidth,
+    }))
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewport)
+    await expect(page.locator('.article-card').first()).toBeVisible()
+  })
+
+  test('stacks article content and keeps wide content scrollable', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.article-card').first().click()
+
+    await expect(page.locator('.reading-layout')).toHaveCSS('display', 'block')
+    await expect(page.locator('.table-of-contents')).toBeVisible()
+
+    const layout = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      pageWidth: document.documentElement.scrollWidth,
+    }))
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewport)
+  })
+})

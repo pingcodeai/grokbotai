@@ -2,7 +2,9 @@
 import { computed, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
-import { articles, categoryName, findArticle, type ArticleBlock } from '../content/articles'
+import { articles, categoryName, findArticle } from '../content/articles'
+import { extractMarkdownHeadings, renderMarkdown } from '../utils/markdown'
+import { renderArticleMarkdown } from '../utils/articleMarkdown'
 import { setPageSeo } from '../utils/seo'
 
 const route = useRoute()
@@ -10,12 +12,9 @@ const article = computed(() => findArticle(route.params.slug))
 const relatedArticles = computed(() =>
   articles.filter((candidate) => candidate.slug !== article.value?.slug).slice(0, 2),
 )
-const headings = computed(
-  () =>
-    article.value?.blocks.filter(
-      (block): block is Extract<ArticleBlock, { type: 'heading' }> => block.type === 'heading',
-    ) ?? [],
-)
+const guide = computed(() => renderArticleMarkdown(article.value?.markdown ?? ''))
+const headings = computed(() => article.value?.format === 'markdown' ? guide.value.headings : extractMarkdownHeadings(article.value?.markdown ?? ''))
+const articleHtml = computed(() => article.value?.format === 'markdown' ? guide.value.html : renderMarkdown(article.value?.markdown ?? ''))
 
 watchEffect(() => {
   const currentArticle = article.value
@@ -89,30 +88,7 @@ watchEffect(() => {
           <p>START SMALL.<br />先把一件事做好。</p>
         </aside>
         <article class="article-content">
-          <template v-for="(block, index) in article.blocks" :key="`${block.type}-${index}`">
-            <p v-if="block.type === 'paragraph'" :class="{ lead: block.lead }">
-              {{ block.text }}
-            </p>
-            <h2 v-else-if="block.type === 'heading'" :id="block.id">
-              <span>{{ block.number }}</span
-              >{{ block.text }}
-            </h2>
-            <blockquote v-else-if="block.type === 'quote'">{{ block.text }}</blockquote>
-            <div v-else-if="block.type === 'compare'" class="compare-block">
-              <div>
-                <span class="mono-label">VAGUE</span><strong>{{ block.leftTitle }}</strong
-                ><small>{{ block.leftText }}</small>
-              </div>
-              <div>
-                <span class="mono-label">TESTABLE</span><strong>{{ block.rightTitle }}</strong
-                ><small>{{ block.rightText }}</small>
-              </div>
-            </div>
-            <pre
-              v-else-if="block.type === 'code'"
-              class="code-sample"
-            ><code>{{ block.lines.join('\n') }}</code><span>{{ block.language }}</span></pre>
-          </template>
+          <div class="article-markdown" v-html="articleHtml" />
           <div class="article-end">
             <span class="mono-label">END OF FIELD NOTE.<br />从一个任务开始，再继续迭代。</span>
           </div>
