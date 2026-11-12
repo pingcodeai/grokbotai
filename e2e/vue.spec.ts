@@ -55,12 +55,26 @@ test('serves prerendered article content and consistent SEO URLs', async ({ requ
   const canonical = html.match(/<link\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)
   expect(canonical).not.toBeNull()
   const origin = new URL(canonical![1]!).origin
+  expect(origin).toBe('https://grokbotai.fun')
+  expect(html).toContain('<html lang="zh-CN">')
+  expect(html).toContain('"url":"https://grokbotai.fun/article/grok-bot-pages-living-work-docs/"')
   const sitemap = await request.get('/sitemap.xml')
   expect(sitemap.ok()).toBeTruthy()
   expect(await sitemap.text()).toContain(`${origin}/article/grok-bot-pages-living-work-docs/`)
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBeTruthy()
   expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.xml`)
+})
+
+test('uses the production origin for home and category SEO', async ({ request }) => {
+  for (const path of ['/', '/category/bot-practice/']) {
+    const response = await request.get(path)
+    expect(response.ok()).toBeTruthy()
+    const html = await response.text()
+    expect(html).toContain('<html lang="zh-CN">')
+    expect(html).toContain(`<link rel="canonical" href="https://grokbotai.fun${path}">`)
+    expect(html).not.toContain('grokbotai.vercel.app')
+  }
 })
 
 test.describe('mobile layout', () => {
