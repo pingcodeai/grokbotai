@@ -3,7 +3,6 @@ import { computed, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
 import { articles, categoryName, findArticle } from '../content/articles'
-import { extractMarkdownHeadings, renderMarkdown } from '../utils/markdown'
 import { renderArticleMarkdown } from '../utils/articleMarkdown'
 import { setPageSeo } from '../utils/seo'
 
@@ -13,8 +12,8 @@ const relatedArticles = computed(() =>
   articles.filter((candidate) => candidate.slug !== article.value?.slug).slice(0, 2),
 )
 const guide = computed(() => renderArticleMarkdown(article.value?.markdown ?? ''))
-const headings = computed(() => article.value?.format === 'markdown' ? guide.value.headings : extractMarkdownHeadings(article.value?.markdown ?? ''))
-const articleHtml = computed(() => article.value?.format === 'markdown' ? guide.value.html : renderMarkdown(article.value?.markdown ?? ''))
+const headings = computed(() => guide.value.headings)
+const articleHtml = computed(() => guide.value.html)
 
 watchEffect(() => {
   const currentArticle = article.value

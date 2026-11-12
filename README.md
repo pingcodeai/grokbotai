@@ -48,10 +48,9 @@ default `https://pingcode.ai`; canonical URLs, Open Graph URLs, JSON-LD, `robots
 `sitemap.xml` use this value. The sitemap is generated from `src/content/articles.ts` during every
 build, so new category and article routes do not need to be maintained separately.
 
-The hosting layer must retain History API fallback for routes that are not prerendered (for example,
-rewrite an unmatched request to `/index.html`). Do not rewrite requests that already resolve to a
-generated file such as `/article/<slug>/index.html` or `/category/<id>/index.html`. The SSG build
-uses nested output so both article and category deep links have a physical `index.html`.
+The SSG build uses nested output so both article and category deep links have a physical
+`index.html`. Vercel serves these generated files directly and redirects the two legacy category
+paths in `vercel.json`. Unknown paths return the hosting platform's 404 response.
 
 ### Type-Check, Compile and Minify for Production
 
@@ -69,6 +68,7 @@ npx playwright install
 yarn build
 
 # Runs the end-to-end tests
+# Outside CI, this builds and starts the production preview automatically.
 yarn test:e2e
 # Runs the tests only on Chromium
 yarn test:e2e --project=chromium
@@ -83,3 +83,36 @@ yarn test:e2e --debug
 ```sh
 yarn lint
 ```
+
+## Automated checks
+
+GitHub Actions runs on every branch push and pull request, and can also be started manually.
+It checks types, runs both linters without changing files, builds the static site, and runs
+Chromium tests against the production preview. Build output and browser reports are retained
+for seven days.
+
+The same workflow audits direct and transitive dependencies, blocks high and critical
+vulnerabilities, scans the full Git history with Gitleaks, and runs CodeQL for JavaScript and
+TypeScript. Gitleaks redacts detected credentials in its output. Dependabot checks npm packages
+and GitHub Actions weekly and opens update pull requests.
+
+To review vulnerabilities at every severity locally:
+
+```sh
+node .yarn/releases/yarn-4.18.1.cjs npm audit --all --recursive
+```
+
+## Vercel deployment
+
+Import `pingcodeai/grokbotai` through Vercel's GitHub integration. Use the repository root,
+Node.js 24, the `yarn build` build command, and `dist` as the output directory. The production
+branch is `main`; other branches and pull requests receive preview deployments.
+
+Set the public `VITE_SITE_ORIGIN` environment variable to the production site's origin before
+building. This value is public and is embedded in canonical links and generated SEO files.
+Keep service credentials out of `VITE_` variables, which are exposed to browser code.
+
+The Git integration does not require a Vercel token in the repository or GitHub Actions.
+Local `.env` files and `.vercel` state are ignored by Git. GitHub checks and Vercel builds run
+independently; required checks on `main` must be configured in GitHub to prevent failed pull
+requests from merging.
