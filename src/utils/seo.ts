@@ -9,7 +9,7 @@ interface PageSeo {
   article?: { publishedTime: string; modifiedTime?: string; author: string; keywords: string[] }
 }
 
-const SITE_ORIGIN = import.meta.env.VITE_SITE_ORIGIN ?? 'https://pingcode.ai'
+export const SITE_ORIGIN = 'https://grokbotai.fun'
 const DEFAULT_IMAGE = 'https://img.yjfan.top/blog/articles/grok-bot-workflow.webp'
 
 export function setPageSeo({
@@ -44,6 +44,7 @@ export function setPageSeo({
       }
 
   useHead({
+    htmlAttrs: { lang: 'zh-CN' },
     title,
     link: [{ rel: 'canonical', href: canonicalUrl }],
     meta: [

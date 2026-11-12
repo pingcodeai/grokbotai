@@ -43,10 +43,10 @@ The production build uses `vite-ssg` to prerender `/`, every real category from
 `src/content/articles.ts`, and every article route. Each route is emitted as a deep-link HTML file
 with its page-specific SEO head and rendered Vue content.
 
-Set `VITE_SITE_ORIGIN` to the public site origin before a production build when it differs from the
-default `https://pingcode.ai`; canonical URLs, Open Graph URLs, JSON-LD, `robots.txt`, and
-`sitemap.xml` use this value. The sitemap is generated from `src/content/articles.ts` during every
-build, so new category and article routes do not need to be maintained separately.
+The production origin is fixed to `https://grokbotai.fun`; canonical URLs, Open Graph URLs,
+JSON-LD, `robots.txt`, and `sitemap.xml` all use this value. The sitemap is generated from
+`src/content/articles.ts` during every build, so new category and article routes do not need to be
+maintained separately.
 
 The SSG build uses nested output so both article and category deep links have a physical
 `index.html`. Vercel serves these generated files directly and redirects the two legacy category
@@ -108,9 +108,8 @@ Import `pingcodeai/grokbotai` through Vercel's GitHub integration. Use the repos
 Node.js 24, the `yarn build` build command, and `dist` as the output directory. The production
 branch is `main`; other branches and pull requests receive preview deployments.
 
-Set the public `VITE_SITE_ORIGIN` environment variable to the production site's origin before
-building. This value is public and is embedded in canonical links and generated SEO files.
-Keep service credentials out of `VITE_` variables, which are exposed to browser code.
+The canonical production origin is defined in source as `https://grokbotai.fun`, so preview or
+legacy Vercel environment variables cannot accidentally replace it in generated SEO metadata.
 
 The Git integration does not require a Vercel token in the repository or GitHub Actions.
 Local `.env` files and `.vercel` state are ignored by Git. GitHub checks and Vercel builds run
