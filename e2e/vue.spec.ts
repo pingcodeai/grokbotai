@@ -65,9 +65,15 @@ test('serves prerendered article content and consistent SEO URLs', async ({ requ
   expect(await sitemap.text()).toContain(
     `${origin}/article/grok-bot-xiaohongshu-content-automation-workflow/`,
   )
+  const textSitemap = await request.get('/sitemap.txt')
+  expect(textSitemap.ok()).toBeTruthy()
+  expect(await textSitemap.text()).toContain(
+    `${origin}/article/grok-bot-xiaohongshu-content-automation-workflow/`,
+  )
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBeTruthy()
   expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.xml`)
+  expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.txt`)
 })
 
 test('uses the production origin for home and category SEO', async ({ request }) => {
