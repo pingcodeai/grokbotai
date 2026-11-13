@@ -54,6 +54,21 @@ export const legacyCategoryIds: Record<string, string> = {
 
 export const articles: Article[] = [
   {
+    "slug": "grok-bot-x-plugin-private-data-troubleshooting",
+    "number": "019",
+    "categoryId": "troubleshooting",
+    "category": "问题排查",
+    "title": "X 插件已经连接，为什么 Grok Bot 还是读不到私信和书签？",
+    "description": "X 插件显示已连接，却无法读取私信、书签或首页时间线？先分清公开数据和私有数据，再检查连接账号与 X API Credits。",
+    "date": "2026-11-13",
+    "displayDate": "2026.11.13",
+    "readingTime": 6,
+    "image": "/images/grok-bot-x-plugin-private-data-troubleshooting-cover.webp",
+    "imageAlt": "Grok Bot X 插件私有数据读取失败问题排查封面，展示插件已连接但 X API Credits 为零",
+    "format": "markdown",
+    "markdown": "# X 插件已经连接，为什么 Grok Bot 还是读不到私信和书签？\n\n你已经在 Grok Bot 中连接了 X 插件，界面也显示连接成功，但让 Bot 读取私信、书签或首页时间线时，任务还是失败。\n\n这种情况不一定是插件没有连好。连接成功只能说明 Grok Bot 获得了对应 X 账号的授权，真正读取私有数据时，还要经过 X API，并且账户中需要有可用的 API Credits。授权状态正常，不代表 API 额度一定可用。\n\n## 一、先分清公开数据和私有数据\n\n排查之前，先确认你让 Grok Bot 读取的是什么数据。公开数据和私有数据走的不是同一条路径。\n\n公开数据包括公开帖子、公开账号资料以及公开搜索结果。根据 xAI 官方说明，Grok Bot 搜索这类内容时使用 X 的公共基础设施，不需要连接个人 X 插件，也不会消耗你的 X API Credits。\n\n下面这些内容属于私有数据：\n\n- X 私信。\n- 账号收藏的书签。\n- 首页时间线。\n- 给某条帖子点赞的用户列表。\n\n读取这些内容需要连接 X 插件，并通过已连接账号调用 X API。如果公开内容能查到，私信和书签却读不到，问题通常就在账号授权或 API Credits，而不是 Grok Bot 完全无法访问 X。\n\n## 二、确认开发者控制台登录的是同一个 X 账号\n\n打开 X Developer Console 时，要使用与 Grok Bot 插件相同的 X 账号登录。\n\n例如，Grok Bot 连接的是账号 A，但你在开发者控制台查看的是账号 B，那么控制台里显示的项目、余额和额度都属于账号 B，不能说明账号 A 的插件可以正常读取私有数据。\n\n检查时可以对照以下信息：\n\n- Grok Bot 中显示的 X 连接账号。\n- X Developer Console 当前登录账号。\n- 开发者控制台中的项目和账单信息是否属于该账号。\n\n不需要把密码、访问令牌或其他敏感信息发给 Bot，也不要为了排查问题在聊天中公开这些内容。\n\n## 三、查看 X API Credits 余额\n\n账号确认无误后，在 X Developer Console 中查看 API Credits。\n\n如果余额显示为 **$0**，即使插件状态是 Connected，读取私信、书签等私有数据的请求仍然可能无法完成。这里的关键是：Grok 套餐与 X API Credits 是两套不同的计费和额度体系。\n\n购买或升级 Grok 套餐，不代表 X API Credits 会自动增加。反过来，插件已经连接，也不能证明开发者账户里已经有可用额度。\n\n因此，遇到问题时不要只检查 Grok 套餐，还要单独查看 X Developer Console 中的实际余额。\n\n## 四、余额为零时添加预付额度\n\n如果 X API Credits 为零，需要在 X Developer Console 中添加预付额度。具体入口、价格和计费规则可能变化，应以控制台当前显示的信息为准。\n\n充值前建议先确认：\n\n- 充值的是当前连接插件所使用的 X 账号。\n- 预算和用量限制是否符合自己的需求。\n- 调用 X API 可能产生单独费用。\n\n不要根据非官方文章中的旧价格直接充值，也不要假设某个 Grok 套餐必然包含 X API 调用额度。\n\n## 五、添加额度后先直接重试\n\nxAI 官方问题排查文档给出的处理方式是：添加 Credits 后，重新执行刚才失败的操作。\n\n也就是说，余额不足时应先解决额度问题，再让 Grok Bot 重试读取私有数据，不必把断开插件、重新授权、反复登录作为第一步。\n\n只有出现下面这些情况时，重新连接插件才更有针对性：\n\n- Grok Bot 连接的 X 账号与开发者控制台账号不一致。\n- X 侧的授权已经被撤销。\n- 插件状态异常或不再显示已连接。\n- 重新执行后仍然返回明确的授权错误。\n\n如果问题只是 Credits 为零，重新连接插件不会自动增加余额，升级 Grok 套餐也不一定能解决。\n\n## 六、仍然失败时继续检查这些信息\n\n余额可用并重新执行后，如果任务仍然失败，可以按下面的顺序继续确认：\n\n1. 请求的是公开数据还是私有数据。\n2. Grok Bot 与 X Developer Console 是否使用同一个 X 账号。\n3. API Credits 是否已经到账，余额是否仍为零。\n4. X 插件授权是否仍然有效。\n5. 当前请求的数据类型是否受支持。\n6. 失败时返回了什么错误信息。\n\n保留错误提示、发生时间和操作步骤，有助于判断问题来自额度、授权还是接口限制。如果需要联系 xAI 支持，可以提供这些信息，但不要提交密码、Cookie、访问令牌或完整私信内容。\n\n## 七、让 Grok Bot 先说明失败原因\n\n排查时可以把下面这段指令发给 Grok Bot，让它先判断请求类型并如实返回错误：\n\n```text\n我要读取当前 X 账号的书签。请先确认：\n\n1. 这项操作属于公开数据还是私有数据。\n2. 是否必须使用 X 插件。\n3. 请求失败时，返回的是授权错误、额度错误，还是当前功能不支持。\n4. 如果无法读取，请停止任务并原样说明错误，不要猜测或补写书签内容。\n```\n\n这段指令不能替代账户检查，但可以避免 Bot 在拿不到数据时继续生成看似合理、实际没有来源的结果。\n\n## 八、总结\n\nX 插件显示已连接，但 Grok Bot 仍然读不到私信和书签，通常不能只看连接状态。\n\n先确认请求的是私有数据，再检查 Grok Bot 与开发者控制台是否登录同一个 X 账号，随后查看 X API Credits。余额为零时添加预付额度，到账后直接重试失败的操作。\n\n最容易忽略的一点是：**插件连接、Grok 套餐和 X API Credits 是三件不同的事。** 连接成功不等于有调用额度，升级 Grok 也不代表 X API Credits 会自动增加。\n\n## 官方来源\n\n- [Grok Bot 官方问题排查文档](https://docs.x.ai/grok-bot/troubleshooting)\n"
+  },
+  {
     "slug": "grok-bot-v1-0-1-meetings-teams-update",
     "number": "018",
     "categoryId": "product-updates",
