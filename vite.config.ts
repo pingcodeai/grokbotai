@@ -237,13 +237,15 @@ const staticSeoFiles = (siteOrigin: string) => ({
       '</urlset>',
       '',
     ].join('\n')
+    const textSitemap = sitemapEntries.map(({ path }) => `${siteOrigin}${path}`).join('\n') + '\n'
 
     this.emitFile({
       type: 'asset',
       fileName: 'robots.txt',
-      source: `User-agent: *\nAllow: /\n\nSitemap: ${siteOrigin}/sitemap.xml\n`,
+      source: `User-agent: *\nAllow: /\n\nSitemap: ${siteOrigin}/sitemap.xml\nSitemap: ${siteOrigin}/sitemap.txt\n`,
     })
     this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap })
+    this.emitFile({ type: 'asset', fileName: 'sitemap.txt', source: textSitemap })
   },
 })
 
