@@ -213,7 +213,7 @@ const staticSeoFiles = (siteOrigin: string) => ({
   generateBundle(this: {
     emitFile: (asset: { type: 'asset'; fileName: string; source: string }) => void
   }) {
-    const sitemapEntries = [
+    const pageEntries = [
       { path: '/', lastmod: latestArticleDate },
       ...categories
         .filter(({ id }) => id !== 'all')
@@ -225,27 +225,52 @@ const staticSeoFiles = (siteOrigin: string) => ({
               .reduce((latest, article) => (article.date > latest ? article.date : latest), '') ||
             latestArticleDate,
         })),
-      ...articles.map(({ slug, date }) => ({ path: `/article/${slug}/`, lastmod: date })),
     ]
-    const sitemap = [
+    const articleEntries = articles.map(({ slug, date }) => ({
+      path: `/article/${slug}/`,
+      lastmod: date,
+    }))
+    const createUrlSet = (entries: { path: string; lastmod: string }[]) =>
+      [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ...entries.map(
+          ({ path, lastmod }) =>
+            `  <url>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`,
+        ),
+        '</urlset>',
+        '',
+      ].join('\n')
+    const sitemapIndex = [
       '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...sitemapEntries.map(
+      '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...[
+        { path: '/sitemaps/page-sitemap.xml', lastmod: latestArticleDate },
+        { path: '/sitemaps/article-sitemap.xml', lastmod: latestArticleDate },
+      ].map(
         ({ path, lastmod }) =>
-          `  <url>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`,
+          `  <sitemap>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </sitemap>`,
       ),
-      '</urlset>',
+      '</sitemapindex>',
       '',
     ].join('\n')
-    const textSitemap = sitemapEntries.map(({ path }) => `${siteOrigin}${path}`).join('\n') + '\n'
 
     this.emitFile({
       type: 'asset',
       fileName: 'robots.txt',
-      source: `User-agent: *\nAllow: /\n\nSitemap: ${siteOrigin}/sitemap.xml\nSitemap: ${siteOrigin}/sitemap.txt\n`,
+      source: `User-agent: *\nAllow: /\n\nSitemap: ${siteOrigin}/sitemap.xml\n`,
     })
-    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap })
-    this.emitFile({ type: 'asset', fileName: 'sitemap.txt', source: textSitemap })
+    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapIndex })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'sitemaps/page-sitemap.xml',
+      source: createUrlSet(pageEntries),
+    })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'sitemaps/article-sitemap.xml',
+      source: createUrlSet(articleEntries),
+    })
   },
 })
 

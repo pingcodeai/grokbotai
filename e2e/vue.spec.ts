@@ -62,18 +62,18 @@ test('serves prerendered article content and consistent SEO URLs', async ({ requ
   )
   const sitemap = await request.get('/sitemap.xml')
   expect(sitemap.ok()).toBeTruthy()
-  expect(await sitemap.text()).toContain(
+  expect(await sitemap.text()).toContain(`${origin}/sitemaps/article-sitemap.xml`)
+  const articleSitemap = await request.get('/sitemaps/article-sitemap.xml')
+  expect(articleSitemap.ok()).toBeTruthy()
+  expect(await articleSitemap.text()).toContain(
     `${origin}/article/grok-bot-xiaohongshu-content-automation-workflow/`,
   )
-  const textSitemap = await request.get('/sitemap.txt')
-  expect(textSitemap.ok()).toBeTruthy()
-  expect(await textSitemap.text()).toContain(
-    `${origin}/article/grok-bot-xiaohongshu-content-automation-workflow/`,
-  )
+  const pageSitemap = await request.get('/sitemaps/page-sitemap.xml')
+  expect(pageSitemap.ok()).toBeTruthy()
+  expect(await pageSitemap.text()).toContain(`${origin}/category/bot-practice/`)
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBeTruthy()
   expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.xml`)
-  expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.txt`)
 })
 
 test('uses the production origin for home and category SEO', async ({ request }) => {
