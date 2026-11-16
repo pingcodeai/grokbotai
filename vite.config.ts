@@ -140,6 +140,33 @@ const localR2UploadPlugin = () => ({
   },
 })
 
+const previewStaticRoutesPlugin = () => {
+  const legacyRoutes: Record<string, string> = {
+    '/article/grok-bot-v1-0-1-meetings-teams-update/': '/article/grok-bot-meetings-teams/',
+    '/category/prompt-lab/': '/category/getting-started/',
+    '/category/grok-notes/': '/category/product-updates/',
+  }
+
+  return {
+    name: 'preview-static-routes',
+    configurePreviewServer(server: {
+      middlewares: {
+        use: (handler: (request: IncomingMessage, response: ServerResponse, next: () => void) => void) => void
+      }
+    }) {
+      server.middlewares.use((request, _response, next) => {
+        if (request.method !== 'GET' && request.method !== 'HEAD') return next()
+        const url = new URL(request.url ?? '/', 'http://localhost')
+        const route = legacyRoutes[url.pathname] ?? url.pathname
+        if (!includedRoutes.includes(route) || route === '/') return next()
+        url.pathname = `${route}index.html`
+        request.url = `${url.pathname}${url.search}`
+        next()
+      })
+    },
+  }
+}
+
 const localArticleSavePlugin = () => ({
   name: 'local-article-save',
   configureServer(server: { middlewares: { use: (handler: (request: IncomingMessage, response: ServerResponse, next: () => void) => void) => void } }) {
@@ -299,7 +326,15 @@ const staticSeoFiles = (siteOrigin: string) => ({
 // https://vite.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [localArticleSavePlugin(), localR2UploadPlugin(), vue(), vueJsx(), vueDevTools(), staticSeoFiles(SITE_ORIGIN)],
+    plugins: [
+      localArticleSavePlugin(),
+      localR2UploadPlugin(),
+      previewStaticRoutesPlugin(),
+      vue(),
+      vueJsx(),
+      vueDevTools(),
+      staticSeoFiles(SITE_ORIGIN),
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
