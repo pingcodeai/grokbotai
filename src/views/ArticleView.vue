@@ -2,14 +2,21 @@
 import { computed, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
-import { articles, categoryName, findArticle } from '../content/articles'
+import { articles, findArticle } from '../content/articles'
 import { renderArticleMarkdown } from '../utils/articleMarkdown'
 import { setPageSeo } from '../utils/seo'
 
 const route = useRoute()
 const article = computed(() => findArticle(route.params.slug))
 const relatedArticles = computed(() =>
-  articles.filter((candidate) => candidate.slug !== article.value?.slug).slice(0, 2),
+  articles
+    .filter((candidate) => candidate.slug !== article.value?.slug)
+    .sort((left, right) => {
+      const leftScore = left.categoryId === article.value?.categoryId ? 1 : 0
+      const rightScore = right.categoryId === article.value?.categoryId ? 1 : 0
+      return rightScore - leftScore || right.date.localeCompare(left.date)
+    })
+    .slice(0, 3),
 )
 const guide = computed(() => renderArticleMarkdown(article.value?.markdown ?? ''))
 const headings = computed(() => guide.value.headings)
@@ -19,15 +26,24 @@ watchEffect(() => {
   const currentArticle = article.value
   setPageSeo({
     title: currentArticle
-      ? `${currentArticle.title} — Grok Bot 实验室`
+      ? `${currentArticle.title}-Grok Bot 实验室`
       : '文章未找到 — Grok Bot 实验室',
     structuredDataTitle: currentArticle?.title,
     description: currentArticle?.description ?? '该文章暂时无法找到。',
     path: route.path,
     image: currentArticle?.image,
+    imageAlt: currentArticle?.imageAlt,
+    pageType: 'article',
+    breadcrumbs: currentArticle
+      ? [
+          { name: '首页', path: '/' },
+          { name: currentArticle.title, path: route.path },
+        ]
+      : [],
     article: currentArticle
       ? {
           publishedTime: `${currentArticle.date}T00:00:00+08:00`,
+          modifiedTime: `${currentArticle.updatedDate ?? currentArticle.date}T00:00:00+08:00`,
           author: 'Grok Bot 实验室',
           keywords: [currentArticle.category, currentArticle.title],
         }
@@ -41,10 +57,7 @@ watchEffect(() => {
     <template v-if="article">
       <div class="breadcrumbs">
         <RouterLink to="/">首页</RouterLink><span>/</span>
-        <RouterLink :to="`/category/${article.categoryId}/`">
-          {{ categoryName(article.categoryId) }}
-        </RouterLink>
-        <span>/</span><span>正在阅读</span>
+        <span aria-current="page">{{ article.title }}</span>
       </div>
 
       <header class="article-header">
@@ -52,20 +65,25 @@ watchEffect(() => {
           <span class="category-tag">{{ article.category }}</span>
           <span class="mono-label">FIELD NOTE / {{ article.number }}</span>
         </div>
-        <h1>{{ article.title }}</h1>
+        <h1
+          :class="{
+            'article-title-long': article.title.length >= 28,
+            'article-title-compact': article.slug === 'grok-bot-x-plugin-private-data-troubleshooting',
+          }"
+        >{{ article.title }}</h1>
         <p class="article-deck">{{ article.description }}</p>
         <div class="author-row">
           <span class="author-mark" aria-hidden="true">✳</span>
           <div>
             <strong>Grok Bot 实验室</strong
-            ><small>{{ article.displayDate }} · {{ article.readingTime }} MIN READ</small>
+            ><small>发布于 {{ article.displayDate }} · 更新于 {{ (article.updatedDate ?? article.date).replaceAll('-', '.') }} · {{ article.readingTime }} 分钟阅读</small>
           </div>
           <RouterLink class="button back-button" to="/">全部文章 <span>↗</span></RouterLink>
         </div>
       </header>
 
       <figure v-if="article.image" class="article-hero-image">
-        <img :src="article.image" :alt="article.imageAlt" />
+        <img :src="article.image" :alt="article.imageAlt" loading="eager" fetchpriority="high" decoding="async" />
         <figcaption>GROK BOT FIELD NOTES — {{ article.number }}</figcaption>
       </figure>
       <div

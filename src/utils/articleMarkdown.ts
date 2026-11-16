@@ -2,6 +2,15 @@ import MarkdownIt from 'markdown-it'
 
 const markdown = new MarkdownIt({ html: false, linkify: true, typographer: true })
 markdown.validateLink = (url) => /^(https?:\/\/|\/(?!\/)|#)/i.test(url)
+const defaultImageRenderer = markdown.renderer.rules.image
+markdown.renderer.rules.image = (tokens, index, options, env, renderer) => {
+  const token = tokens[index]
+  token?.attrSet('loading', 'lazy')
+  token?.attrSet('decoding', 'async')
+  return defaultImageRenderer
+    ? defaultImageRenderer(tokens, index, options, env, renderer)
+    : renderer.renderToken(tokens, index, options)
+}
 
 export interface ArticleHeading {
   id: string
@@ -11,7 +20,9 @@ export interface ArticleHeading {
 }
 
 export function renderArticleMarkdown(source: string) {
-  const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').replace(/^# .+\r?\n/, '')
+  const body = source
+    .replace(/^\s*---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
+    .replace(/^\s*# .+\r?\n/, '')
   const tokens = markdown.parse(body, {})
   const headings: ArticleHeading[] = []
   const headingCounts = [0, 0, 0]
@@ -31,7 +42,7 @@ export function renderArticleMarkdown(source: string) {
         : numberParts.join('.') + ' /'
     const id = 'section-' + numberParts.join('-')
     token.attrSet('id', id)
-    if (level <= 3) headings.push({ id, number, text, level })
+    headings.push({ id, number, text, level })
   }
 
   return { html: markdown.renderer.render(tokens, markdown.options, {}), headings }

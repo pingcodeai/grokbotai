@@ -1,16 +1,30 @@
 import { useHead } from '@unhead/vue'
 
+interface BreadcrumbItem {
+  name: string
+  path: string
+}
+
 interface PageSeo {
   title: string
   structuredDataTitle?: string
   description: string
   path: string
   image?: string
+  imageAlt?: string
+  pageType?: 'home' | 'category' | 'article' | 'about' | 'utility'
+  robots?: 'index,follow' | 'noindex,follow'
+  breadcrumbs?: BreadcrumbItem[]
   article?: { publishedTime: string; modifiedTime?: string; author: string; keywords: string[] }
 }
 
 export const SITE_ORIGIN = 'https://grokbotai.fun'
-const DEFAULT_IMAGE = 'https://img.yjfan.top/blog/articles/grok-bot-workflow.webp'
+export const SITE_NAME = 'Grok Bot 实验室'
+const DEFAULT_IMAGE = new URL('/images/grok-bot-workflow.jpg', SITE_ORIGIN).href
+const ORGANIZATION_ID = `${SITE_ORIGIN}/#organization`
+const WEBSITE_ID = `${SITE_ORIGIN}/#website`
+
+const absoluteUrl = (value?: string) => value ? new URL(value, SITE_ORIGIN).href : DEFAULT_IMAGE
 
 export function setPageSeo({
   title,
@@ -18,30 +32,72 @@ export function setPageSeo({
   description,
   path,
   image,
+  imageAlt = structuredDataTitle,
+  pageType = 'utility',
+  robots = 'index,follow',
+  breadcrumbs = [],
   article,
 }: PageSeo) {
   const canonicalUrl = new URL(path, SITE_ORIGIN).href
-  const imageUrl = image ?? DEFAULT_IMAGE
-  const structuredData = article
+  const imageUrl = absoluteUrl(image)
+  const imageType = /\.webp(?:$|\?)/i.test(imageUrl)
+    ? 'image/webp'
+    : /\.png(?:$|\?)/i.test(imageUrl)
+      ? 'image/png'
+      : 'image/jpeg'
+  const organization = {
+    '@type': 'Organization',
+    '@id': ORGANIZATION_ID,
+    name: SITE_NAME,
+    url: SITE_ORIGIN,
+    logo: { '@type': 'ImageObject', url: new URL('/grok-bot-icon.svg', SITE_ORIGIN).href },
+    sameAs: ['https://github.com/pingcodeai/grokbotai'],
+  }
+  const website = {
+    '@type': 'WebSite',
+    '@id': WEBSITE_ID,
+    name: SITE_NAME,
+    url: `${SITE_ORIGIN}/`,
+    publisher: { '@id': ORGANIZATION_ID },
+    inLanguage: 'zh-CN',
+  }
+  const breadcrumbData = breadcrumbs.length
     ? {
-        '@context': 'https://schema.org', '@type': 'Article', headline: structuredDataTitle, description,
-        url: canonicalUrl, mainEntityOfPage: canonicalUrl,
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbs.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: new URL(item.path, SITE_ORIGIN).href,
+        })),
+      }
+    : undefined
+  const pageData = article
+    ? {
+        '@type': 'Article',
+        headline: structuredDataTitle,
+        description,
+        url: canonicalUrl,
+        mainEntityOfPage: canonicalUrl,
         image: { '@type': 'ImageObject', url: imageUrl },
         datePublished: article.publishedTime,
         dateModified: article.modifiedTime ?? article.publishedTime,
-        author: { '@type': 'Organization', name: article.author },
-        publisher: {
-          '@type': 'Organization', name: 'Grok Bot 实验室',
-          logo: { '@type': 'ImageObject', url: new URL('/grok-bot-icon.svg', SITE_ORIGIN).href },
-        },
+        author: { '@id': ORGANIZATION_ID },
+        publisher: { '@id': ORGANIZATION_ID },
         keywords: article.keywords,
+        inLanguage: 'zh-CN',
       }
     : {
-        '@context': 'https://schema.org',
-        '@type': path.startsWith('/category/') ? 'CollectionPage' : 'WebSite',
-        name: structuredDataTitle, description, url: canonicalUrl,
-        isPartOf: { '@type': 'WebSite', name: 'Grok Bot 实验室', url: SITE_ORIGIN },
+        '@type': pageType === 'category' ? 'CollectionPage' : pageType === 'about' ? 'AboutPage' : 'WebPage',
+        name: structuredDataTitle,
+        description,
+        url: canonicalUrl,
+        isPartOf: { '@id': WEBSITE_ID },
+        inLanguage: 'zh-CN',
       }
+  const graph = pageType === 'home'
+    ? [organization, website, { ...pageData, '@type': 'WebPage', about: { '@id': ORGANIZATION_ID } }]
+    : [organization, website, pageData, ...(breadcrumbData ? [breadcrumbData] : [])]
 
   useHead({
     htmlAttrs: { lang: 'zh-CN' },
@@ -49,26 +105,27 @@ export function setPageSeo({
     link: [{ rel: 'canonical', href: canonicalUrl }],
     meta: [
       { name: 'description', content: description },
-      { property: 'og:site_name', content: 'Grok Bot 实验室' },
+      { name: 'robots', content: robots },
+      { property: 'og:site_name', content: SITE_NAME },
       { property: 'og:locale', content: 'zh_CN' },
       { property: 'og:type', content: article ? 'article' : 'website' },
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { property: 'og:url', content: canonicalUrl },
       { property: 'og:image', content: imageUrl },
-      { property: 'og:image:alt', content: title },
-      { property: 'og:image:type', content: 'image/webp' },
+      { property: 'og:image:alt', content: imageAlt },
+      { property: 'og:image:type', content: imageType },
       { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
-      { name: 'twitter:url', content: canonicalUrl },
       { name: 'twitter:image', content: imageUrl },
       ...(article ? [
         { property: 'article:published_time', content: article.publishedTime },
         { property: 'article:modified_time', content: article.modifiedTime ?? article.publishedTime },
       ] : []),
     ],
-    script: [{ type: 'application/ld+json', textContent: JSON.stringify(structuredData) }],
+    script: [{ type: 'application/ld+json', textContent: JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }) }],
   })
 }
