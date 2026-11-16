@@ -8,17 +8,12 @@ test('visits the app root url', async ({ page }) => {
 })
 
 test('filters articles when a category is selected', async ({ page }) => {
-  await page.goto('/')
-
-  await page.getByLabel('文章分类').getByRole('link', { name: '场景实战' }).click()
+  await page.goto('/category/bot-practice/')
 
   await expect(page).toHaveURL(/\/category\/bot-practice\/$/)
   await expect(page.locator('h1')).toHaveText('场景实战：Grok Bot 使用指南')
-  await expect(page.getByLabel('文章分类').getByRole('link', { name: '场景实战' })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
   await expect(page.locator('.article-card')).toHaveCount(1)
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
 })
 
 test('searches articles and shows an empty result', async ({ page }) => {
@@ -42,7 +37,7 @@ test('opens an article and preserves it after a reload', async ({ page }) => {
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('小红书内容自动化工作流')
   await expect(page.locator('.article-content')).toContainText('热点选题 Bot')
-  await expect(page).toHaveTitle(/小红书内容自动化工作流/)
+  await expect(page).toHaveTitle('用 Grok Bot 搭建小红书内容自动化工作流-Grok Bot 实验室')
 })
 
 test('serves prerendered article content and consistent SEO URLs', async ({ request }) => {
@@ -51,6 +46,8 @@ test('serves prerendered article content and consistent SEO URLs', async ({ requ
   const html = await response.text()
   expect(html).toContain('用 Grok Bot 搭建小红书内容自动化工作流')
   expect(html).toContain('application/ld+json')
+  expect(html).toContain('BreadcrumbList')
+  expect(html).toContain('dateModified')
 
   const canonical = html.match(/<link\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)
   expect(canonical).not.toBeNull()
@@ -70,10 +67,29 @@ test('serves prerendered article content and consistent SEO URLs', async ({ requ
   )
   const pageSitemap = await request.get('/sitemaps/page-sitemap.xml')
   expect(pageSitemap.ok()).toBeTruthy()
-  expect(await pageSitemap.text()).toContain(`${origin}/category/bot-practice/`)
+  const pageSitemapText = await pageSitemap.text()
+  expect(pageSitemapText).toContain(`${origin}/about/`)
+  expect(pageSitemapText).toContain(`${origin}/bots/`)
+  expect(pageSitemapText).not.toContain(`${origin}/category/bot-practice/`)
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBeTruthy()
   expect(await robots.text()).toContain(`Sitemap: ${origin}/sitemap.xml`)
+  const llms = await request.get('/llms.txt')
+  expect(llms.ok()).toBeTruthy()
+  expect(await llms.text()).toContain('## 最新文章')
+})
+
+test('opens the translated bot marketplace and filters bots', async ({ page }) => {
+  await page.goto('/bots/')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Grok Bot 市场')
+  await expect(page.locator('.marketplace-card')).toHaveCount(34)
+
+  await page.getByRole('button', { name: '设计创意', exact: true }).click()
+  await expect(page.locator('.marketplace-card')).toHaveCount(4)
+  await expect(page.locator('.marketplace-card')).toContainText(['Imogen', 'figma bro', 'Critiquito', 'Game Art Director'])
+
+  await page.getByRole('searchbox').fill('Figma')
+  await expect(page.locator('.marketplace-card')).toHaveCount(2)
 })
 
 test('uses the production origin for home and category SEO', async ({ request }) => {
@@ -85,6 +101,27 @@ test('uses the production origin for home and category SEO', async ({ request })
     expect(html).toContain(`<link rel="canonical" href="https://grokbotai.fun${path}">`)
     expect(html).not.toContain('grokbotai.vercel.app')
   }
+})
+
+test('redirects the legacy meetings article URL to the canonical slug', async ({ page }) => {
+  await page.goto('/article/grok-bot-v1-0-1-meetings-teams-update/')
+  await expect(page).toHaveURL(/\/article\/grok-bot-meetings-teams\/$/)
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Grok Bot 开始参加线上会议')
+})
+
+test('publishes about page and absolute open graph images', async ({ request }) => {
+  const about = await request.get('/about/')
+  expect(about.ok()).toBeTruthy()
+  const aboutHtml = await about.text()
+  expect(aboutHtml).toContain('<h1>关于 Grok Bot 实验室</h1>')
+  expect(aboutHtml).toContain('AboutPage')
+
+  const article = await request.get('/article/grok-bot-x-plugin-private-data-troubleshooting/')
+  const articleHtml = await article.text()
+  expect(articleHtml).toContain(
+    'property="og:image" content="https://grokbotai.fun/images/grok-bot-x-plugin-private-data-troubleshooting-cover.webp"',
+  )
+  expect(articleHtml).toContain('property="og:image:type" content="image/webp"')
 })
 
 test.describe('mobile layout', () => {

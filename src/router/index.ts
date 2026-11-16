@@ -1,7 +1,13 @@
 import type { RouterScrollBehavior, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ArticleView from '../views/ArticleView.vue'
+import AboutView from '../views/AboutView.vue'
+import BotMarketplaceView from '../views/BotMarketplaceView.vue'
 import { categories, legacyCategoryIds } from '../content/articles'
+
+const legacyArticleSlugs: Record<string, string> = {
+  'grok-bot-v1-0-1-meetings-teams-update': 'grok-bot-meetings-teams',
+}
 
 export const scrollBehavior: RouterScrollBehavior = (to) => {
   if (to.hash) return { el: to.hash, behavior: 'smooth' }
@@ -24,9 +30,25 @@ export const routes: RouteRecordRaw[] = [
       name: 'article',
       component: ArticleView,
     },
+    {
+      path: '/bots/',
+      name: 'bots',
+      component: BotMarketplaceView,
+    },
+    {
+      path: '/about/',
+      name: 'about',
+      component: AboutView,
+    },
   ]
 
 export function handleRouteRedirect(to: RouteLocationNormalized) {
+  const pathArticle = typeof to.params.slug === 'string' ? to.params.slug : ''
+  const articleReplacement = legacyArticleSlugs[pathArticle]
+  if (to.name === 'article' && articleReplacement) {
+    return { path: `/article/${articleReplacement}/`, replace: true }
+  }
+
   const pathCategory = typeof to.params.categoryId === 'string' ? to.params.categoryId : ''
   const replacement = legacyCategoryIds[pathCategory]
   if (to.name === 'category' && replacement) {

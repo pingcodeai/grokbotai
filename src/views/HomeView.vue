@@ -2,7 +2,7 @@
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
-import { articles, categories } from '../content/articles'
+import { articles, categories, isCategoryIndexable } from '../content/articles'
 import { setPageSeo } from '../utils/seo'
 
 const route = useRoute()
@@ -14,6 +14,7 @@ const selectedCategory = computed(() =>
 const activeCategory = computed(() =>
   categories.find((category) => category.id === selectedCategory.value),
 )
+const publicCategories = computed(() => categories)
 const pageHeading = computed(() => {
   const category = activeCategory.value
   return category && category.id !== 'all'
@@ -25,8 +26,8 @@ watchEffect(() => {
   const category = activeCategory.value
   const title = category
     ? category.id === 'all'
-      ? 'Grok Bot 使用指南与实战教程 — Grok Bot 实验室'
-      : `${pageHeading.value} — Grok Bot 实验室`
+      ? 'Grok Bot 实验室 - 使用指南与场景实战'
+      : `${category.label}-Grok Bot 使用指南-Grok Bot 实验室`
     : '分类未找到 — Grok Bot 实验室'
   const description = category?.description ?? '该文章分类暂不存在。'
 
@@ -36,6 +37,11 @@ watchEffect(() => {
     description,
     path: route.path,
     image: articles.find((article) => article.image)?.image,
+    pageType: category?.id === 'all' ? 'home' : 'category',
+    robots: category && category.id !== 'all' && !isCategoryIndexable(category.id) ? 'noindex,follow' : 'index,follow',
+    breadcrumbs: category && category.id !== 'all'
+      ? [{ name: '首页', path: '/' }, { name: category.label, path: route.path }]
+      : [],
   })
 })
 
@@ -66,7 +72,7 @@ const visibleArticles = computed(() => {
       <div v-if="articles.length" class="article-tools">
         <div class="category-list" aria-label="文章分类">
           <RouterLink
-            v-for="category in categories"
+            v-for="category in publicCategories"
             :key="category.id"
             class="category-button"
             :to="category.id === 'all' ? '/' : `/category/${category.id}/`"

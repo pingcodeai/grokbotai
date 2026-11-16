@@ -9,14 +9,15 @@ import { defineConfig, type UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
-import { articles, categories } from './src/content/articles.ts'
+import { articles, categories, isCategoryIndexable } from './src/content/articles.ts'
 
 /** dev 与 preview 固定使用该端口。 */
 const PORT = 8999
 const SITE_ORIGIN = 'https://grokbotai.fun'
 const includedRoutes = [
   '/',
-  '/editor/',
+  '/about/',
+  '/bots/',
   ...categories.filter(({ id }) => id !== 'all').map(({ id }) => `/category/${id}/`),
   ...articles.map(({ slug }) => `/article/${slug}/`),
 ]
@@ -139,6 +140,33 @@ const localR2UploadPlugin = () => ({
   },
 })
 
+const previewStaticRoutesPlugin = () => {
+  const legacyRoutes: Record<string, string> = {
+    '/article/grok-bot-v1-0-1-meetings-teams-update/': '/article/grok-bot-meetings-teams/',
+    '/category/prompt-lab/': '/category/getting-started/',
+    '/category/grok-notes/': '/category/product-updates/',
+  }
+
+  return {
+    name: 'preview-static-routes',
+    configurePreviewServer(server: {
+      middlewares: {
+        use: (handler: (request: IncomingMessage, response: ServerResponse, next: () => void) => void) => void
+      }
+    }) {
+      server.middlewares.use((request, _response, next) => {
+        if (request.method !== 'GET' && request.method !== 'HEAD') return next()
+        const url = new URL(request.url ?? '/', 'http://localhost')
+        const route = legacyRoutes[url.pathname] ?? url.pathname
+        if (!includedRoutes.includes(route) || route === '/') return next()
+        url.pathname = `${route}index.html`
+        request.url = `${url.pathname}${url.search}`
+        next()
+      })
+    },
+  }
+}
+
 const localArticleSavePlugin = () => ({
   name: 'local-article-save',
   configureServer(server: { middlewares: { use: (handler: (request: IncomingMessage, response: ServerResponse, next: () => void) => void) => void } }) {
@@ -171,11 +199,12 @@ const localArticleSavePlugin = () => ({
           const categoryId = String(data.categoryId ?? '')
           const category = categories.find((entry) => entry.id === categoryId && entry.id !== 'all')
           const date = String(data.date ?? '')
+          const updatedDate = String(data.updatedDate ?? date)
           const readingTime = Number(data.readingTime)
           const markdown = data.markdown
           const image = String(data.image ?? '').trim()
-          if (!title || !description || !category || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(readingTime) || readingTime < 1 || typeof markdown !== 'string' || !markdown.trim()) throw new Error('请填写标题、摘要、分类、日期、阅读时间和正文')
-          if (image && !/^https?:\/\//i.test(image)) throw new Error('封面图片 URL 必须以 http 或 https 开头')
+          if (!title || !description || !category || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{4}-\d{2}-\d{2}$/.test(updatedDate) || !Number.isFinite(readingTime) || readingTime < 1 || typeof markdown !== 'string' || !markdown.trim()) throw new Error('请填写标题、摘要、分类、日期、更新日期、阅读时间和正文')
+          if (image && !/^(https?:\/\/|\/(?!\/))/i.test(image)) throw new Error('封面图片必须使用 http、https 或站内绝对路径')
           return {
             slug,
             number: knownNumbers.get(slug) ?? String(++nextNumber).padStart(3, '0'),
@@ -184,6 +213,7 @@ const localArticleSavePlugin = () => ({
             title,
             description,
             date,
+            updatedDate,
             displayDate: date.replace(/-/g, '.'),
             readingTime,
             ...(image ? { image } : {}),
@@ -215,8 +245,10 @@ const staticSeoFiles = (siteOrigin: string) => ({
   }) {
     const pageEntries = [
       { path: '/', lastmod: latestArticleDate },
+      { path: '/bots/', lastmod: '2026-11-16' },
+      { path: '/about/', lastmod: latestArticleDate },
       ...categories
-        .filter(({ id }) => id !== 'all')
+        .filter(({ id }) => id !== 'all' && isCategoryIndexable(id))
         .map(({ id }) => ({
           path: `/category/${id}/`,
           lastmod:
@@ -226,9 +258,9 @@ const staticSeoFiles = (siteOrigin: string) => ({
             latestArticleDate,
         })),
     ]
-    const articleEntries = articles.map(({ slug, date }) => ({
+    const articleEntries = articles.map(({ slug, date, updatedDate }) => ({
       path: `/article/${slug}/`,
-      lastmod: date,
+      lastmod: updatedDate ?? date,
     }))
     const createUrlSet = (entries: { path: string; lastmod: string }[]) =>
       [
@@ -236,7 +268,7 @@ const staticSeoFiles = (siteOrigin: string) => ({
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
         ...entries.map(
           ({ path, lastmod }) =>
-            `  <url>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`,
+            `  <url>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}T00:00:00+08:00</lastmod>\n  </url>`,
         ),
         '</urlset>',
         '',
@@ -249,7 +281,7 @@ const staticSeoFiles = (siteOrigin: string) => ({
         { path: '/sitemaps/article-sitemap.xml', lastmod: latestArticleDate },
       ].map(
         ({ path, lastmod }) =>
-          `  <sitemap>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </sitemap>`,
+          `  <sitemap>\n    <loc>${escapeXml(`${siteOrigin}${path}`)}</loc>\n    <lastmod>${lastmod}T00:00:00+08:00</lastmod>\n  </sitemap>`,
       ),
       '</sitemapindex>',
       '',
@@ -271,13 +303,38 @@ const staticSeoFiles = (siteOrigin: string) => ({
       fileName: 'sitemaps/article-sitemap.xml',
       source: createUrlSet(articleEntries),
     })
+    const llms = [
+      '# Grok Bot 实验室',
+      '',
+      '> Grok Bot 使用指南、场景实战、Bot 市场、问题排查与产品动态。',
+      '',
+      '## 核心页面',
+      `- [文章首页](${siteOrigin}/): 浏览全部已发布的 Grok Bot 教程与产品记录`,
+      `- [Bot 市场](${siteOrigin}/bots/): 浏览 Grok Bot 官方 Marketplace 的中文分类目录`,
+      `- [关于本站](${siteOrigin}/about/): 了解本站内容范围、维护方式与项目联系入口`,
+      '',
+      '## 最新文章',
+      ...articles.slice(0, 10).map((article) =>
+        `- [${article.title}](${siteOrigin}/article/${article.slug}/): ${article.description}`,
+      ),
+      '',
+    ].join('\n')
+    this.emitFile({ type: 'asset', fileName: 'llms.txt', source: llms })
   },
 })
 
 // https://vite.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [localArticleSavePlugin(), localR2UploadPlugin(), vue(), vueJsx(), vueDevTools(), staticSeoFiles(SITE_ORIGIN)],
+    plugins: [
+      localArticleSavePlugin(),
+      localR2UploadPlugin(),
+      previewStaticRoutesPlugin(),
+      vue(),
+      vueJsx(),
+      vueDevTools(),
+      staticSeoFiles(SITE_ORIGIN),
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

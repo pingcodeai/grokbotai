@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import { categories } from './content/articles'
+
+const footerQrCodes = [
+  {
+    label: '公众号',
+    src: '/images/grok-bot-public-account-qr.webp',
+    alt: 'Grok Bot 实验室公众号二维码',
+  },
+  {
+    label: '视频号',
+    src: '/images/grok-bot-video-account-qr.webp',
+    alt: 'Grok Bot 实验室视频号二维码',
+  },
+]
 </script>
 
 <template>
@@ -21,12 +33,9 @@ import { categories } from './content/articles'
           </span>
         </RouterLink>
         <nav class="main-nav" aria-label="主导航">
-          <RouterLink
-            v-for="category in categories"
-            :key="category.id"
-            :to="category.id === 'all' ? '/' : '/category/' + category.id + '/'"
-            exact-active-class="nav-current"
-          >{{ category.label }}</RouterLink>
+          <RouterLink to="/" exact-active-class="nav-current">文章首页</RouterLink>
+          <RouterLink to="/bots/" exact-active-class="nav-current">Bot 市场</RouterLink>
+          <RouterLink to="/about/" exact-active-class="nav-current">关于本站</RouterLink>
         </nav>
         <div class="nav-actions">
           <a
@@ -53,9 +62,45 @@ import { categories } from './content/articles'
       <component :is="Component" :key="route.fullPath" />
     </RouterView>
     <footer class="site-footer">
-      <RouterLink class="footer-brand" to="/">GROK BOT FIELD NOTES</RouterLink>
-      <span>为可用的 Bot 而写。© 2026</span>
-      <a href="#top">回到顶部 ↑</a>
+      <div class="footer-main">
+        <section class="footer-intro" aria-labelledby="footer-site-title">
+          <RouterLink id="footer-site-title" class="footer-brand" to="/">Grok Bot 实验室</RouterLink>
+          <p>
+            专注整理 Grok Bot 的使用方法、场景实战、Bot 市场、问题排查与产品动态。
+            通过可复查的步骤、真实截图和官方来源，帮助你把 Bot 用到实际工作中。
+          </p>
+          <span class="footer-note">GROK BOT FIELD NOTES / BUILD · TEST · VERIFY</span>
+        </section>
+
+        <nav class="footer-links" aria-label="底部快捷链接">
+          <strong>快捷链接</strong>
+          <div>
+            <RouterLink to="/">文章首页</RouterLink>
+            <RouterLink to="/bots/">Bot 市场</RouterLink>
+            <RouterLink to="/about/">关于本站</RouterLink>
+            <a href="https://github.com/pingcodeai/grokbotai" target="_blank" rel="noopener noreferrer">GitHub 项目</a>
+            <a href="https://pingcode.ai/" target="_blank" rel="noopener noreferrer">PingCode AI</a>
+          </div>
+        </nav>
+
+        <section class="footer-qr-section" aria-labelledby="footer-qr-title">
+          <strong id="footer-qr-title">关注与交流</strong>
+          <div class="footer-qr-grid">
+            <div v-for="item in footerQrCodes" :key="item.label" class="footer-qr-item">
+              <div class="footer-qr-image">
+                <img :src="item.src" :alt="item.alt" loading="lazy" decoding="async" />
+              </div>
+              <span>{{ item.label }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 Grok Bot 实验室</span>
+        <span>内容以官方资料与实际测试为依据</span>
+        <a href="#top">回到顶部 ↑</a>
+      </div>
     </footer>
   </div>
 </template>

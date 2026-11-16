@@ -6,6 +6,11 @@
   "trailingSlash": true,
   "redirects": [
     {
+      "source": "/article/grok-bot-v1-0-1-meetings-teams-update/",
+      "destination": "/article/grok-bot-meetings-teams/",
+      "permanent": true
+    },
+    {
       "source": "/category/prompt-lab/",
       "destination": "/category/getting-started/",
       "permanent": true
@@ -48,6 +53,13 @@
       "source": "/sitemaps/(.*)",
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     }
