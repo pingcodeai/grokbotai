@@ -1,7 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 import { createHash, createHmac } from 'node:crypto'
-import { existsSync, readFileSync } from 'node:fs'
-import { writeFile } from 'node:fs/promises'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 
@@ -171,29 +170,48 @@ const localArticleSavePlugin = () => ({
   name: 'local-article-save',
   configureServer(server: { middlewares: { use: (handler: (request: IncomingMessage, response: ServerResponse, next: () => void) => void) => void } }) {
     server.middlewares.use(async (request, response, next) => {
-      if (request.url !== '/api/local-article-save' || request.method !== 'POST') return next()
+      if (request.url !== '/api/local-article-save') return next()
       const reply = (status: number, body: object) => {
         response.statusCode = status
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
+        response.setHeader('Cache-Control', 'no-store')
         response.end(JSON.stringify(body))
       }
       try {
+        const path = fileURLToPath(new URL('./src/content/articles.ts', import.meta.url))
+        const readCurrent = () => {
+          const original = readFileSync(path, 'utf8')
+          const start = original.indexOf('export const articles: Article[] = [')
+          const end = original.indexOf('\nexport function findArticle(', start)
+          if (start < 0 || end < 0) throw new Error('无法定位文章数据，文件没有改动')
+          const current = JSON.parse(original.slice(start + 'export const articles: Article[] = '.length, end).trim()) as typeof articles
+          return { original, start, end, current }
+        }
+        if (request.method === 'GET') return reply(200, { articles: readCurrent().current })
+        if (request.method !== 'POST') return reply(405, { error: '不支持此操作' })
         const origin = request.headers.origin
         if (!origin || new URL(origin).host !== request.headers.host || request.headers['content-type']?.split(';')[0] !== 'application/json') {
           return reply(403, { error: '仅允许从本地文章工作台保存' })
         }
-        const payload: unknown = JSON.parse((await readRequestBody(request)).toString('utf8'))
-        if (!Array.isArray(payload) || payload.length > 500 || !payload.length) throw new Error('文章列表无效')
+        const payload = JSON.parse((await readRequestBody(request)).toString('utf8')) as { article?: unknown; originalSlug?: string; base?: unknown }
+        if (!payload || !payload.article || Array.isArray(payload)) throw new Error('请刷新编辑页后使用单篇保存')
+        const { original, start, end, current } = readCurrent()
+        const existingIndex = current.findIndex((entry) => entry.slug === payload.originalSlug)
+        const existing = current[existingIndex]
+        if (payload.originalSlug && (!existing || JSON.stringify(existing) !== JSON.stringify(payload.base))) {
+          return reply(409, { error: '这篇文章已被其他窗口或项目文件修改，请先恢复项目文章，再重新编辑，避免覆盖新内容。' })
+        }
         const usedSlugs = new Set<string>()
-        const knownNumbers = new Map(articles.map((article) => [article.slug, article.number]))
-        const knownMetadata = new Map(articles.map((article) => [article.slug, article]))
-        let nextNumber = Math.max(0, ...articles.map((article) => Number(article.number) || 0))
-        const saved = payload.map((item: unknown) => {
+        const knownNumbers = new Map(current.map((article) => [article.slug, article.number]))
+        const knownMetadata = new Map(current.map((article) => [article.slug, article]))
+        let nextNumber = Math.max(0, ...current.map((article) => Number(article.number) || 0))
+        const saved = [payload.article].map((item: unknown) => {
           if (!item || typeof item !== 'object') throw new Error('文章格式无效')
           const data = item as Record<string, unknown>
           const slug = String(data.slug ?? '').trim()
           if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || usedSlugs.has(slug)) throw new Error('文章 Slug 无效或重复：' + slug)
           usedSlugs.add(slug)
+          if (current.some((entry, index) => entry.slug === slug && index !== existingIndex)) throw new Error('此 Slug 已被另一篇文章使用')
           const title = String(data.title ?? '').trim()
           const description = String(data.description ?? '').trim()
           const categoryId = String(data.categoryId ?? '')
@@ -207,7 +225,7 @@ const localArticleSavePlugin = () => ({
           if (image && !/^(https?:\/\/|\/(?!\/))/i.test(image)) throw new Error('封面图片必须使用 http、https 或站内绝对路径')
           return {
             slug,
-            number: knownNumbers.get(slug) ?? String(++nextNumber).padStart(3, '0'),
+            number: existing?.number ?? knownNumbers.get(slug) ?? String(++nextNumber).padStart(3, '0'),
             categoryId,
             category: category.label,
             title,
@@ -217,20 +235,18 @@ const localArticleSavePlugin = () => ({
             displayDate: date.replace(/-/g, '.'),
             readingTime,
             ...(image ? { image } : {}),
-            ...(typeof data.imageAlt === 'string' && data.imageAlt ? { imageAlt: data.imageAlt } : knownMetadata.get(slug)?.imageAlt ? { imageAlt: knownMetadata.get(slug)?.imageAlt } : {}),
-            ...(data.format === 'markdown' || knownMetadata.get(slug)?.format === 'markdown' ? { format: 'markdown' } : {}),
+            ...((existing ?? knownMetadata.get(slug))?.imageAlt ? { imageAlt: (existing ?? knownMetadata.get(slug))?.imageAlt } : {}),
+            ...(data.format === 'markdown' || existing?.format === 'markdown' ? { format: 'markdown' as const } : {}),
             markdown,
           }
         })
-        const path = fileURLToPath(new URL('./src/content/articles.ts', import.meta.url))
-        const original = readFileSync(path, 'utf8')
-        const start = original.indexOf('export const articles: Article[] = [')
-        const end = original.indexOf('\nexport function findArticle(', start)
-        if (start < 0 || end < 0) throw new Error('无法定位文章数据，文件没有改动')
-        const serialized = saved.map((entry) => '  ' + JSON.stringify(entry, null, 2).replace(/\n/g, '\n  ')).join(',\n')
+        const savedArticle = saved[0]!
+        if (existingIndex < 0) current.unshift(savedArticle)
+        else current[existingIndex] = savedArticle
+        const serialized = current.map((entry) => '  ' + JSON.stringify(entry, null, 2).replace(/\n/g, '\n  ')).join(',\n')
         const updated = original.slice(0, start) + 'export const articles: Article[] = [\n' + serialized + '\n]\n' + original.slice(end)
-        await writeFile(path, updated, 'utf8')
-        reply(200, { count: saved.length })
+        writeFileSync(path, updated, 'utf8')
+        reply(200, { article: savedArticle })
       } catch (error) {
         reply(400, { error: error instanceof Error ? error.message : '保存失败' })
       }

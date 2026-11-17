@@ -15,6 +15,11 @@ export const scrollBehavior: RouterScrollBehavior = (to) => {
 }
 
 export const routes: RouteRecordRaw[] = [
+    ...(import.meta.env.DEV ? [{
+      path: '/editor/',
+      name: 'editor',
+      component: () => import('../views/EditorView.vue'),
+    }] : []),
     {
       path: '/',
       name: 'home',
