@@ -1,0 +1,26 @@
+diff --git a/lib/parse.js b/lib/parse.js
+index caa2b86aa5a567df33cef4bda3c7a97794f439f8..467e6860c1b3ef3db3ebde6a0e04358401d4db8e 100644
+--- a/lib/parse.js
++++ b/lib/parse.js
+@@ -292,6 +292,21 @@ const analyzeRepeatedExtglob = (body, options) => {
+ 
+   const branches = splitTopLevel(body).map(branch => branch.trim());
+ 
++  // GHSA-fc5q-39xc-vjpf: an unbounded wildcard inside a repeated
++  // extglob can cause exponential backtracking even with only one branch.
++  // Conservatively literalize these patterns until upstream ships a fix.
++  if (branches.length === 1) {
++    let escaped = false;
++    let inClass = false;
++    for (const ch of branches[0]) {
++      if (escaped) { escaped = false; continue; }
++      if (ch.charCodeAt(0) === 92) { escaped = true; continue; }
++      if (ch === '[') { inClass = true; continue; }
++      if (ch === ']') { inClass = false; continue; }
++      if (ch === '*' && !inClass) return { risky: true };
++    }
++  }
++
+   if (branches.length > 1) {
+     if (
+       branches.some(branch => branch === '') ||

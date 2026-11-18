@@ -74,8 +74,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      - name: Audit direct and transitive dependencies
-        run: node .yarn/releases/yarn-4.18.1.cjs npm audit --all --recursive --severity high
+      - name: Install dependencies with local security patches
+        run: node .yarn/releases/yarn-4.18.1.cjs install --immutable
+      - name: Verify security patches and audit direct and transitive dependencies
+        run: node scripts/audit-dependencies.mjs
 
   secrets:
     name: Git history secret scan
