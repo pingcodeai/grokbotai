@@ -2,7 +2,7 @@
 import { computed, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
-import { articles, findArticle } from '../content/articles'
+import { publishedArticles as articles, findArticle } from '../content/articles'
 import { renderArticleMarkdown } from '../utils/articleMarkdown'
 import { setPageSeo } from '../utils/seo'
 
@@ -34,6 +34,7 @@ watchEffect(() => {
     image: currentArticle?.image,
     imageAlt: currentArticle?.imageAlt,
     pageType: 'article',
+    robots: currentArticle ? 'index,follow' : 'noindex,follow',
     breadcrumbs: currentArticle
       ? [
           { name: '首页', path: '/' },

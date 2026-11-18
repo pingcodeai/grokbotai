@@ -8,7 +8,7 @@ import { defineConfig, type UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
-import { articles, categories, isCategoryIndexable } from './src/content/articles.ts'
+import { publishedArticles as articles, categories, isCategoryIndexable } from './src/content/articles.ts'
 
 /** dev 与 preview 固定使用该端口。 */
 const PORT = 8999
@@ -221,10 +221,12 @@ const localArticleSavePlugin = () => ({
           const readingTime = Number(data.readingTime)
           const markdown = data.markdown
           const image = String(data.image ?? '').trim()
+          if (data.enabled !== undefined && typeof data.enabled !== 'boolean') throw new Error('文章显示状态无效')
           if (!title || !description || !category || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{4}-\d{2}-\d{2}$/.test(updatedDate) || !Number.isFinite(readingTime) || readingTime < 1 || typeof markdown !== 'string' || !markdown.trim()) throw new Error('请填写标题、摘要、分类、日期、更新日期、阅读时间和正文')
           if (image && !/^(https?:\/\/|\/(?!\/))/i.test(image)) throw new Error('封面图片必须使用 http、https 或站内绝对路径')
           return {
             slug,
+            enabled: typeof data.enabled === 'boolean' ? data.enabled : existing?.enabled !== false,
             number: existing?.number ?? knownNumbers.get(slug) ?? String(++nextNumber).padStart(3, '0'),
             categoryId,
             category: category.label,

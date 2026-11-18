@@ -3,6 +3,7 @@ export { renderMarkdown } from './markdown'
 
 export interface EditableArticle {
   id: string
+  enabled: boolean
   slug: string
   title: string
   description: string
@@ -21,6 +22,7 @@ export const EDITOR_STORAGE_KEY = 'grokbotai.article-editor.v5'
 
 export const articleToEditable = (article: Article): EditableArticle => ({
   id: article.slug,
+  enabled: article.enabled !== false,
   slug: article.slug,
   title: article.title,
   description: article.description,
@@ -38,6 +40,7 @@ export const createBlankArticle = (): EditableArticle => {
   const timestamp = Date.now()
   return {
     id: `draft-${timestamp}`,
+    enabled: true,
     slug: `new-article-${timestamp}`,
     title: '未命名文章',
     description: '请填写文章摘要。',
@@ -58,6 +61,7 @@ export const articleToMarkdownFile = (article: EditableArticle) => {
     '---',
     `title: ${quoteFrontmatter(article.title)}`,
     `slug: ${quoteFrontmatter(article.slug)}`,
+    `enabled: ${article.enabled !== false}`,
     `description: ${quoteFrontmatter(article.description)}`,
     `category: ${quoteFrontmatter(article.category)}`,
     `categoryId: ${quoteFrontmatter(article.categoryId)}`,

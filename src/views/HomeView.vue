@@ -2,7 +2,7 @@
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import ProductCta from '../components/ProductCta.vue'
-import { articles, categories, isCategoryIndexable } from '../content/articles'
+import { publishedArticles as articles, categories, isCategoryIndexable } from '../content/articles'
 import { setPageSeo } from '../utils/seo'
 
 const route = useRoute()
