@@ -63,7 +63,11 @@
     "@vue/server-renderer": "rc",
     "@vue/shared": "rc",
     "@vue/compat": "rc",
-    "typescript": "npm:typescript-native-bridge@latest"
+    "typescript": "npm:typescript-native-bridge@latest",
+    "picomatch@npm:^4.0.7": "patch:picomatch@npm%3A4.0.7#~/.yarn/patches/picomatch-npm-4.0.7-2906b103fe.patch",
+    "picomatch@npm:^4.0.2": "patch:picomatch@npm%3A4.0.7#~/.yarn/patches/picomatch-npm-4.0.7-2906b103fe.patch",
+    "picomatch@npm:^4.0.4": "patch:picomatch@npm%3A4.0.7#~/.yarn/patches/picomatch-npm-4.0.7-2906b103fe.patch",
+    "picomatch@npm:^2.3.1": "patch:picomatch@npm%3A2.3.2#~/.yarn/patches/picomatch-npm-2.3.2-4d85543a37.patch"
   },
   "packageManager": "yarn@4.18.1"
 }

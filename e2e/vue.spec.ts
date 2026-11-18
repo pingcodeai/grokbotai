@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { publishedArticles } from '../src/content/articles'
 
 // See here how to get started:
 // https://playwright.dev/docs/intro
@@ -12,7 +13,9 @@ test('filters articles when a category is selected', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/category\/bot-practice\/$/)
   await expect(page.locator('h1')).toHaveText('场景实战：Grok Bot 使用指南')
-  await expect(page.locator('.article-card')).toHaveCount(2)
+  const expectedArticles = publishedArticles.filter((article) => article.categoryId === 'bot-practice')
+  await expect(page.locator('.article-card')).toHaveCount(expectedArticles.length)
+  await expect(page.locator('.article-card h2')).toHaveText(expectedArticles.map((article) => `${article.title} ↗`))
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
 })
 

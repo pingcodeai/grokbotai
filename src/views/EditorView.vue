@@ -189,9 +189,9 @@ onMounted(async () => {
       if (!entry.draft?.id) continue
       const index = drafts.value.findIndex((draft) => draft.id === entry.draft.id)
       if (index >= 0 && JSON.stringify(baselines.get(entry.draft.id)) === JSON.stringify(entry.base)) {
-        drafts.value[index] = entry.draft
+        drafts.value[index] = { ...entry.draft, enabled: entry.draft.enabled !== false }
       } else if (!entry.base && index < 0) {
-        drafts.value.push(entry.draft)
+        drafts.value.push({ ...entry.draft, enabled: entry.draft.enabled !== false })
       } else { conflicts += 1 }
     }
     if (conflicts) status.value = '已载入项目最新内容；过期草稿未自动应用，原缓存保留在浏览器中。'
@@ -256,6 +256,7 @@ watch(drafts, cacheDrafts, { deep: true })
             <div>
               <span class="mono-label">{{ String(index + 1).padStart(2, '0') }} · {{ article.category }}</span>
               <strong>{{ article.title }}</strong>
+              <small>{{ article.enabled === false ? '已关闭 · 前台隐藏' : '已开启 · 前台展示' }}</small>
               <small>/{{ article.slug }}/</small>
             </div>
             <div class="order-buttons">
@@ -269,6 +270,7 @@ watch(drafts, cacheDrafts, { deep: true })
 
       <section v-if="activeArticle" :key="activeId" class="editor-workspace">
         <div class="editor-metadata">
+          <label class="wide"><span>文章显示</span><select v-model="activeArticle.enabled"><option :value="true">开启：展示文章</option><option :value="false">关闭：隐藏文章</option></select><small>点击“保存当前文章”生效。线上站点需要重新构建部署。</small></label>
           <label class="wide"><span>标题</span><input v-model="activeArticle.title" /></label>
           <label><span>Slug</span><input v-model="activeArticle.slug" /></label>
           <label><span>分类</span><select v-model="activeArticle.categoryId" @change="updateCategory"><option v-for="category in categories.filter(item => item.id !== 'all')" :key="category.id" :value="category.id">{{ category.label }}</option></select></label>

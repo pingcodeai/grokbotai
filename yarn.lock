@@ -3782,17 +3782,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^2.3.1":
+"picomatch@npm:2.3.2":
   version: 2.3.2
   resolution: "picomatch@npm:2.3.2"
   checksum: 10c0/a554d1709e59be97d1acb9eaedbbc700a5c03dbd4579807baed95100b00420bc729335440ef15004ae2378984e2487a7c1cebd743cfdb72b6fa9ab69223c0d61
   languageName: node
   linkType: hard
 
-"picomatch@npm:^4.0.2, picomatch@npm:^4.0.4, picomatch@npm:^4.0.7":
+"picomatch@npm:4.0.7":
   version: 4.0.7
   resolution: "picomatch@npm:4.0.7"
   checksum: 10c0/beb6ae02c43ae44e84883b90830196d9046b1726ead292adcf7f57945e0bb0d992d68563d87e03b484b6f3c9a5c6defda7523477f047d7f0e663f126cc01787f
+  languageName: node
+  linkType: hard
+
+"picomatch@patch:picomatch@npm%3A2.3.2#~/.yarn/patches/picomatch-npm-2.3.2-4d85543a37.patch":
+  version: 2.3.2
+  resolution: "picomatch@patch:picomatch@npm%3A2.3.2#~/.yarn/patches/picomatch-npm-2.3.2-4d85543a37.patch::version=2.3.2&hash=039612"
+  checksum: 10c0/56b8bc772f97e3611c52b86f0b54418aa580697b89562b447350abd232ca3d301a5f577deb538a72c0b951a767333b7e2edad83965e242ec855a3174ef937383
+  languageName: node
+  linkType: hard
+
+"picomatch@patch:picomatch@npm%3A4.0.7#~/.yarn/patches/picomatch-npm-4.0.7-2906b103fe.patch":
+  version: 4.0.7
+  resolution: "picomatch@patch:picomatch@npm%3A4.0.7#~/.yarn/patches/picomatch-npm-4.0.7-2906b103fe.patch::version=4.0.7&hash=552a1e"
+  checksum: 10c0/4010027340802d0383d4e3716c897736d02bf5d328b3125834241b8b52e94c0a5087512dc259b7f59a48efe3dda923fd92a8eaea17b6e8d4844c2d95ce379457
   languageName: node
   linkType: hard
 
