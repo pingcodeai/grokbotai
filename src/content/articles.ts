@@ -69,7 +69,7 @@ export const articles: Article[] = [
   },
   {
     "slug": "grok-bot-usage-troubleshooting",
-    "enabled": false,
+    "enabled": true,
     "number": "022",
     "categoryId": "troubleshooting",
     "category": "问题排查",
