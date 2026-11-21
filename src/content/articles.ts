@@ -86,7 +86,7 @@ export const articles: Article[] = [
   },
   {
     "slug": "grok-bot-backup-restore-guide",
-    "enabled": false,
+    "enabled": true,
     "number": "024",
     "categoryId": "bot-practice",
     "category": "场景实战",
