@@ -52,7 +52,7 @@ export const legacyCategoryIds: Record<string, string> = {
 export const articles: Article[] = [
   {
     "slug": "grok-bot-website-check-bug-report",
-    "enabled": false,
+    "enabled": true,
     "number": "026",
     "categoryId": "bot-practice",
     "category": "场景实战",
