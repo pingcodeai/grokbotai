@@ -147,7 +147,7 @@ A new routine waits for its next scheduled time; it doesn't run when it's create
 
 Trigger work from an event
 
-A routine can start when something happens instead of on a schedule: a Slack message, a GitHub, Linear, Sentry, or PagerDuty event, an email to your Bot's own address, or a webhook call. Cursor account integrations start these routines; they're separate from the 
+A routine can start when something happens instead of on a schedule: a Slack message, a GitHub, Linear, Sentry, or PagerDuty event, an email to your Bot's own address, or a webhook call. Cursor account integrations start these routines; they're separate from the
 Slack
  or GitHub apps and may need their own connection. Ask the Bot for the trigger you want; the routine's When to run shows it in words, such as “When a Linear issue is created.” Only new activity counts: events from before the trigger existed don't start a run.
 
@@ -159,9 +159,9 @@ Avoid broad listeners such as “every new message.” They create noise, consum
 
 Slack triggers
 
-A Slack trigger is part of a routine, not the 
+A Slack trigger is part of a routine, not the
 Slack
- app. The app lets a Bot post and read as the 
+ app. The app lets a Bot post and read as the
 Slack
  user you connected; a trigger starts the routine when something happens in Slack. Connect Slack on the Cursor account that owns the Bot before you rely on it.
 
