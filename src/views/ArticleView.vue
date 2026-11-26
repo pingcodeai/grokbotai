@@ -18,7 +18,7 @@ const relatedArticles = computed(() =>
     })
     .slice(0, 3),
 )
-const guide = computed(() => renderArticleMarkdown(article.value?.markdown ?? ''))
+const guide = computed(() => renderArticleMarkdown(article.value?.markdown ?? '', article.value?.inlineImageLoading))
 const headings = computed(() => guide.value.headings)
 const articleHtml = computed(() => guide.value.html)
 
