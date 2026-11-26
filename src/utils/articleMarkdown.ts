@@ -5,7 +5,7 @@ markdown.validateLink = (url) => /^(https?:\/\/|\/(?!\/)|#)/i.test(url)
 const defaultImageRenderer = markdown.renderer.rules.image
 markdown.renderer.rules.image = (tokens, index, options, env, renderer) => {
   const token = tokens[index]
-  token?.attrSet('loading', 'lazy')
+  token?.attrSet('loading', env?.imageLoading === 'eager' ? 'eager' : 'lazy')
   token?.attrSet('decoding', 'async')
   return defaultImageRenderer
     ? defaultImageRenderer(tokens, index, options, env, renderer)
@@ -19,7 +19,7 @@ export interface ArticleHeading {
   level: 2 | 3 | 4
 }
 
-export function renderArticleMarkdown(source: string) {
+export function renderArticleMarkdown(source: string, imageLoading: 'eager' | 'lazy' = 'lazy') {
   const body = source
     .replace(/^\s*---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
     .replace(/^\s*# .+\r?\n/, '')
@@ -45,5 +45,5 @@ export function renderArticleMarkdown(source: string) {
     headings.push({ id, number, text, level })
   }
 
-  return { html: markdown.renderer.render(tokens, markdown.options, {}), headings }
+  return { html: markdown.renderer.render(tokens, markdown.options, { imageLoading }), headings }
 }
