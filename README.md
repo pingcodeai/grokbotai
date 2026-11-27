@@ -1,6 +1,26 @@
-# grokbotai
+# Grok Bot 实验室 · Grok Bot Field Notes
 
-This template should help get you started developing with Vue 3 in Vite.
+Grok Bot 实验室是一个中文教程与资源网站，整理 Grok Bot 的新手入门、场景实战、问题排查、产品动态和 Bot 中文目录。文章提供可复查的步骤、实际操作截图、来源链接与使用边界。
+
+**[在线阅读：grokbotai.fun](https://grokbotai.fun/)** · [关于本站](https://grokbotai.fun/about/) · [Bot 中文目录](https://grokbotai.fun/bots/)
+
+## 从这里开始
+
+- [从 0 到 1 创建第一个 Grok Bot 任务](https://grokbotai.fun/article/grok-bot-beginner-guide/)：创建 Bot、交代任务并核对输出；记录会议待办中无依据状态的纠错过程。
+- [用 Grok Bot 检查网站，把坏链接和页面问题整理成报告](https://grokbotai.fun/article/grok-bot-website-check-bug-report/)：网站巡检案例，包含页面问题、真实截图及人工复查方法。
+- [全部文章](https://grokbotai.fun/)：按入门、场景实战、问题排查和产品动态浏览。
+
+本站是教程与资源项目，不提供 Grok Bot 软件本体或大模型 API 服务，也不代表 xAI 官方。涉及外部产品的功能、价格或可用范围，请核对文章所列来源和产品当前说明。
+
+## 内容纠错与参与
+
+发现链接失效、步骤过时或事实错误，请在本仓库提交 Issue，附上文章网址、问题位置及可核查的依据。不要在 Issue 中提交密码、令牌或其他私人信息。
+
+Grok Bot Field Notes provides Chinese-language guides, practical workflow examples, troubleshooting articles, product updates, and a Bot directory. Read the guides at [grokbotai.fun](https://grokbotai.fun/).
+
+## 网站源码与本地开发
+
+本仓库包含网站源码。开发与部署说明如下。
 
 ## Recommended IDE Setup
 
