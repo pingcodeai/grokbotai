@@ -53,7 +53,7 @@ export const legacyCategoryIds: Record<string, string> = {
 export const articles: Article[] = [
 {
   "slug": "grok-bot-1-3-0-slack-handoff",
-  "enabled": false,
+  "enabled": true,
   "number": "030",
   "categoryId": "product-updates",
   "category": "产品动态",
